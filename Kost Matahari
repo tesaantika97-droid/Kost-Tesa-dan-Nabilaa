@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Antariksa NASA</title>
+    <!-- Menggunakan Tailwind CSS untuk tampilan otomatis rapi -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body { background-color: #0b0f19; color: #f3f4f6; font-family: sans-serif; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+    <div class="max-w-3xl w-full bg-slate-900 rounded-2xl shadow-2xl border border-slate-800 p-6 md:p-8 text-center">
+        <!-- Judul -->
+        <h1 class="text-3xl font-extrabold mb-2 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500">
+            NASA Astronomy Picture of the Day
+        </h1>
+        <p class="text-gray-400 text-sm mb-6">Mengambil data langsung dari api.nasa.gov</p>
+
+        <!-- 1. STATUS LOADING (Muncul saat proses) -->
+        <div id="loader" class="py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p class="text-gray-400 mt-4 animate-pulse">Menghubungkan ke server NASA... mohon tunggu</p>
+        </div>
+
+        <!-- 2. PESAN ERROR (Muncul jika gagal/kunci demo habis) -->
+        <div id="error-message" class="hidden py-8 text-red-400 bg-red-950/30 rounded-xl border border-red-900/50 p-4">
+            <p class="font-bold">Waduh, Gagal Memuat Data!</p>
+            <p class="text-sm text-gray-400 mt-1">Kemungkinan kuota 'DEMO_KEY' dari NASA sedang habis. Coba buat API Key gratis Anda sendiri di website resmi NASA.</p>
+        </div>
+
+        <!-- 3. KONTEN UTAMA (Muncul jika sukses) -->
+        <div id="content" class="hidden space-y-6 text-left">
+            <div class="border-t border-slate-800 pt-4">
+                <h2 id="title" class="text-xl font-bold text-white mb-1"></h2>
+                <span id="date" class="text-xs bg-blue-950 text-blue-400 font-semibold px-2.5 py-1 rounded-md"></span>
+            </div>
+
+            <!-- Tempat Foto/Video -->
+            <div id="media-container" class="w-full rounded-xl overflow-hidden bg-black flex justify-center">
+                <!-- Gambar disisipkan lewat JS -->
+            </div>
+
+            <!-- Penjelasan Keren -->
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                <h3 class="text-sm font-bold text-purple-400 uppercase tracking-wider mb-2">Deskripsi Gambar:</h3>
+                <p id="explanation" class="text-gray-300 text-sm leading-relaxed text-justify"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Menggunakan DEMO_KEY bawaan NASA
+        const API_KEY = 'DEMO_KEY'; 
+        const API_URL = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}`;
+
+        async function ambilDataNASA() {
+            const loader = document.getElementById('loader');
+            const content = document.getElementById('content');
+            const errorMessage = document.getElementById('error-message');
+
+            try {
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error('Gagal mengambil data dari server');
+                }
+                
+                const data = await response.json();
+                
+                // Masukkan data ke HTML
+                document.getElementById('title').innerText = data.title;
+                document.getElementById('date').innerText = "Tanggal: " + data.date;
+                document.getElementById('explanation').innerText = data.explanation;
+                
+                const mediaContainer = document.getElementById('media-container');
+                if (data.media_type === 'image') {
+                    mediaContainer.innerHTML = `<img src="${data.url}" class="max-h-[450px] w-full object-contain">`;
+                } else if (data.media_type === 'video') {
+                    mediaContainer.innerHTML = `<iframe src="${data.url}" class="w-full h-[350px]" frameborder="0" allowfullscreen></iframe>`;
+                }
+
+                // Sembunyikan loader, tampilkan konten
+                loader.classList.add('hidden');
+                content.classList.remove('hidden');
+
+            } catch (error) {
+                console.error(error);
+                // Sembunyikan loader, tampilkan pesan error
+                loader.classList.add('hidden');
+                errorMessage.classList.remove('hidden');
+            }
+        }
+
+        // Jalankan fungsi otomatis saat halaman dibuka
+        window.onload = ambilDataNASA;
+    </script>
+</body>
+</html>
